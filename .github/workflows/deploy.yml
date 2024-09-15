@@ -22,7 +22,7 @@ jobs:
       run: npm test
   deploy:
     if: github.ref == 'refs/heads/main'
-    needs: [build]
+    needs: [build-and-test]
     runs-on: ubuntu-latest
     steps:
       - uses: carlosflorencio/hetzner_deployer@v1
