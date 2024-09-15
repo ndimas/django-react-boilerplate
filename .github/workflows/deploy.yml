@@ -21,38 +21,16 @@ jobs:
     - name: Run tests
       run: npm test
   deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: [build]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.12]
-        node-version: [20.13]
-    needs: build-and-test
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Add private SSH key passphrase
-      env:
-        SSH_PASSPHRASE: ${{ secrets.HETZNER_SSH_KEY }}
-      run: |
-        expect << 'END_EXPECT'
-          spawn ssh-add ~/.ssh/id_rsa
-          expect "Enter passphrase for ~/.ssh/id_rsa:"
-          send "$SSH_PASSPHRASE\r"
-          expect eof
-    - name: Set up SSH agent
-      uses: webfactory/ssh-agent@v0.7.0
-      with:
-        ssh-private-key: ${{ secrets.HETZNER_SSH_KEY }}
-    - name: Deploy to Hetzner VPS
-      run: |
-        rsync -avz --exclude='.git*' ./ root@${{ secrets.HETZNER_SSH_KEY }}:/path/to/your/project
-    - name: Execute remote commands
-      run: |
-        ssh root@${{ secrets.HETZNER_SSH_KEY }} << 'EOF'
-        cd /path/to/your/project
-
-        # Add any additional commands you wish to run on the server
-        # For example:
-        # npm install
-        # npm run build
-        EOF
+      - uses: carlosflorencio/hetzner_deployer@v1
+        with:
+          servers: ${{ secrets.SERVER_IPS }}
+          hetzner_token: ${{ secrets.HCLOUD_TOKEN }}
+          ssh_key: ${{ secrets.HETZNER_SSH_KEY }}
+          ssh_port: 22
+          graceful_wait_seconds: 5
+          commands: |
+            docker-compose up -d
