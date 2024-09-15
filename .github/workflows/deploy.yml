@@ -30,10 +30,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    - name: Set up SSH agent
-      uses: webfactory/ssh-agent@v0.7.0
-      with:
-        ssh-private-key: ${{ secrets.HETZNER_SSH_KEY }}
     - name: Add private SSH key passphrase
       env:
         SSH_PASSPHRASE: ${{ secrets.HETZNER_SSH_KEY }}
@@ -43,6 +39,10 @@ jobs:
           expect "Enter passphrase for ~/.ssh/id_rsa:"
           send "$SSH_PASSPHRASE\r"
           expect eof
+    - name: Set up SSH agent
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.HETZNER_SSH_KEY }}
     - name: Deploy to Hetzner VPS
       run: |
         rsync -avz --exclude='.git*' ./ root@${{ secrets.HETZNER_SSH_KEY }}:/path/to/your/project
