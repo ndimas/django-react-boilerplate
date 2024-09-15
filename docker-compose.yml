@@ -66,5 +66,5 @@ services:
 
 volumes:
   dbdata:
-    name: {{project_name}}_dbdata
+    name: django_react_dbdata
     external: true
